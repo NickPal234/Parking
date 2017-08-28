@@ -1,0 +1,71 @@
+﻿@{
+    ViewBag.Title = "Polgon";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Point</h2>
+
+<div id="tableBlock1"></div>
+
+@section scripts
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            GetAllBooks1();
+
+        });
+        function GetAllBooks1() {
+            $.ajax({
+                url: '/api/points',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    WriteResponse1(data);
+                },
+                error: function (x, y, z) {
+                    alert(x + '\n' + y + '\n' + z);
+                }
+            });
+        }
+
+
+        function DeleteBook1(id) {
+
+            $.ajax({
+                url: '/api/points/' + id,
+                type: 'DELETE',
+                contentType: "application/json;charset=utf-8",
+                success: function (data) {
+                    GetAllBooks1();
+                },
+                error: function (x, y, z) {
+                    alert(x + '\n' + y + '\n' + z);
+                }
+            });
+        }
+
+
+        function WriteResponse1(books) {
+            var strResult = "<table><th>Номер</th>";
+            $.each(books, function (index, book) {
+                strResult += "<tr><td> " + book.Name +
+
+
+                "<td><a id='delItem1' data-item1='" + book.Id + "' onclick='DeleteItem1(this);' >Удалить</a></td></tr>";
+            });
+            strResult += "</table>";
+            $("#tableBlock1").html(strResult);
+
+        }
+        // обработчик удаления
+        function DeleteItem1(el) {
+            // получаем id удаляемого объекта
+            var id = $(el).attr('data-item1');
+            DeleteBook1(id);
+        }
+
+
+
+    </script>
+}

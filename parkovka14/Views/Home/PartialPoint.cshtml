@@ -1,0 +1,191 @@
+﻿
+<h2>Point</h2>
+
+<div id="tableBlock"></div>
+<div id="editBlock">
+    <p><b>Редактирование </b></p>
+    <table>
+        <tr><td><input type="hidden" id="editId" /></td><td></td></tr>
+        <tr><td><label>Name: </label></td><td><input type="text" id="editName" /></td></tr>
+        <tr><td><label>Id: </label></td><td><input type="number" id="editId" /></td></tr>
+        <tr><td><label>Trafic: </label></td><td><input type="number" id="editTrafic" /></td></tr>
+        <tr><td><label>Cash: </label></td><td><input type="number" id="editCash" /></td></tr>
+        <tr><td><label>GeoLong: </label></td><td><input type="number" id="editGeoLong" /></td></tr>
+        <tr><td><label>GeoLat: </label></td><td><input type="number" id="editGeoLat" /></td></tr>
+
+    </table>
+    <button id="editBook">Сохранить</button>
+</div>
+<div id="createBlock">
+    <p><b>Добавление </b></p>
+    <table>
+        <tr><td><input type="hidden" id="editId" /></td><td></td></tr>
+        <tr><td><label>Name: </label></td><td><input type="text" id="addName" /></td></tr>
+        <tr><td><label>Id: </label></td><td><input type="number" id="addId" /></td></tr>
+        <tr><td><label>Trafic: </label></td><td><input type="number" id="addTrafic" /></td></tr>
+        <tr><td><label>Cash: </label></td><td><input type="number" id="addCash" /></td></tr>
+        <tr><td><label>GeoLong: </label></td><td><input type="number" id="addGeoLong" /></td></tr>
+        <tr><td><label>GeoLat: </label></td><td><input type="number" id="addGeoLat" /></td></tr>
+    </table>
+    <button id="addBook">Сохранить</button>
+</div>
+@section scripts
+{
+    <script type="text/javascript">
+    $(document).ready(function () {
+
+        GetAllBooks();
+
+        $("#editBook").click(function (event) {
+            event.preventDefault();
+            EditBook();
+        });
+
+        $("#addBook").click(function (event) {
+            event.preventDefault();
+            AddBook();
+        });
+
+    });
+    function GetAllBooks() {
+
+        $("#createBlock").css('display', 'block');
+        $("#editBlock").css('display', 'none');
+        $.ajax({
+            url: '/api/points',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                WriteResponse(data);
+            },
+            error: function (x, y, z) {
+                alert(x + '\n' + y + '\n' + z);
+            }
+        });
+    }
+    function AddBook() {
+
+        var book = {
+            Name: $('#addName').val(),
+            Id: $('#addId').val(),
+            Trafic: $('#addTrafic').val(),
+            Cash: $('#addCash').val(),
+            GeoLong: $('#addGeoLong').val(),
+            GeoLat: $('#addGeoLat').val(),
+        };
+
+        $.ajax({
+            url: '/api/points/',
+            type: 'POST',
+            data: JSON.stringify(book),
+            contentType: "application/json;charset=utf-8",
+            success: function (data) {
+                GetAllBooks();
+            },
+            error: function (x, y, z) {
+                alert(x + '\n' + y + '\n' + z);
+            }
+        });
+    }
+
+    function DeleteBook(id) {
+
+        $.ajax({
+            url: '/api/points/' + id,
+            type: 'DELETE',
+            contentType: "application/json;charset=utf-8",
+            success: function (data) {
+                GetAllBooks();
+            },
+            error: function (x, y, z) {
+                alert(x + '\n' + y + '\n' + z);
+            }
+        });
+    }
+    // редактирование книги
+    function EditBook() {
+        var id = $('#editId').val()
+        // получаем новые значения для редактируемой книги
+
+        var book = {
+            Name: $('#editName').val(),
+            Id: $('#editId').val(),
+            Trafic: $('#editTrafic').val(),
+            Cash: $('#editCash').val(),
+            GeoLong: $('#editGeoLong').val(),
+            GeoLat: $('#editGeoLat').val(),
+        };
+
+
+
+        $.ajax({
+            url: '/api/points/' + id,
+            type: 'PUT',
+            data: JSON.stringify(book),
+            contentType: "application/json;charset=utf-8",
+            success: function (data) {
+                GetAllBooks();
+            },
+            error: function (x, y, z) {
+                alert(x + '\n' + y + '\n' + z);
+            }
+        });
+    }
+
+    function WriteResponse(books) {
+        var strResult = "<table><th>ID</th><th>Название</th><th>Кол-во мест</th><th>Стоимость</th><th>Долгота</th><th>Широта</th>";
+        $.each(books, function (index, book) {
+            strResult += "<tr><td>" + book.Id + "</td><td> " + book.Name + "</td><td>" +
+            book.Trafic + "</td><td>" + book.Cash + "</td><td>" +
+            book.GeoLong + "</td><td>" + book.GeoLat +
+            "</td><td>          <a id='editItem' data-item='" + book.Id + "' onclick='EditItem(this);' >Редактировать</a></td>" +
+            "<td><a id='delItem' data-item='" + book.Id + "' onclick='DeleteItem(this);' >Удалить</a></td></tr>";
+        });
+        strResult += "</table>";
+        $("#tableBlock").html(strResult);
+
+    }
+    // обработчик удаления
+    function DeleteItem(el) {
+        // получаем id удаляемого объекта
+        var id = $(el).attr('data-item');
+        DeleteBook(id);
+    }
+    // обработчик редактирования
+    function EditItem (el) {
+        // получаем id редактируемого объекта
+        var id = $(el).attr('data-item');
+        GetBook(id);
+    }
+    // вывод данных редактируемой книги в поля для редактирования
+    function ShowBook(book) {
+        if (book != null) {
+            $("#createBlock").css('display', 'none');
+            $("#editBlock").css('display', 'block');
+            $("#editId").val(book.Id);
+            $("#editName").val(book.Name);
+            $("#editTrafic").val(book.Trafic);
+            $("#editCash").val(book.Cash);
+            $("#editGeoLong").val(book.GeoLong);
+            $("#editGeoLat").val(book.GeoLat);
+        }
+        else {
+            alert("Такая книга не существует");
+        }
+    }
+    // запрос книги на редактирование
+    function GetBook(id) {
+        $.ajax({
+            url: '/api/points/' + id,
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                ShowBook(data);
+            },
+            error: function (x, y, z) {
+                alert(x + '\n' + y + '\n' + z);
+            }
+        });
+    }
+    </script>
+}

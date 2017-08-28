@@ -1,0 +1,605 @@
+﻿<script src="http://maps.google.com/maps/api/js?sensor=true" type="text/javascript"></script>
+
+<style>
+    .stationInfo {
+        height: 150px;
+        width: 250px;
+    }
+</style>
+<div id="map" style="height:600px; width:900px; float:right;  "></div>
+<div id="Point" > @*width:400px; style="height:350px;  "*@ 
+    @*<button id="Click2P">Установленно Point</button>*@
+    <h2>Point</h2>
+
+    <div id="tableBlock"></div>
+    <div id="editBlock">
+        <p><b>Редактирование </b></p>
+        <table>
+            @*<tr><td><input type="hidden" id="editId" /></td><td></td></tr>
+            <tr><td><label>Name: </label></td><td><input type="text" id="editName" /></td></tr>
+            <tr><td><label>Id: </label></td><td><input type="number" id="editId" /></td></tr>
+            <tr><td><label>Trafic: </label></td><td><input type="number" id="editTrafic" /></td></tr>
+            <tr><td><label>Cash: </label></td><td><input type="number" id="editCash" /></td></tr>
+            <tr><td><label>GeoLong: </label></td><td><input type="number" id="editGeoLong" /></td></tr>
+                <tr><td><label>GeoLat: </label></td><td><input type="number" id="editGeoLat" /></td></tr>*@
+            <tr><td><input type="hidden" id="editId" /></td><td></td></tr>
+            <tr><td><label>Адресс: </label></td><td><input type="text" id="editName" /></td></tr>
+            <tr><td><label>Id: </label></td><td><input type="number" id="editId" /></td></tr>
+            <tr><td><label>Кол-во мест: </label></td><td><input type="number" id="editTrafic" /></td></tr>
+            <tr><td><label>Плата за час: </label></td><td><input type="number" id="editCash" /></td></tr>
+            <tr><td><label>Макс. высота: </label></td><td><input type="number" id="editId" /></td></tr>
+            <tr><td><label>Охрана: </label></td><td><input type="number" id="editTrafic" /></td></tr>
+            <tr><td><label>Тип: </label></td><td><input type="number" id="editCash" /></td></tr>
+            <tr><td><label>Оплата: </label></td><td><input type="number" id="editTrafic" /></td></tr>
+        </table>
+        <button id="editBook">Сохранить</button>
+    </div>
+  
+    <div id="createBlock" >
+        <p><b>Добавление </b></p>
+        <table>
+            @*<tr><td><input type="hidden" id="editId" /></td><td></td></tr>
+            <tr><td><label>Name: </label></td><td><input type="text" id="addName" /></td></tr>
+            <tr><td><label>Id: </label></td><td><input type="number" id="addId" /></td></tr>
+            <tr><td><label>Trafic: </label></td><td><input type="number" id="addTrafic" /></td></tr>
+            <tr><td><label>Cash: </label></td><td><input type="number" id="addCash" /></td></tr>
+            <tr><td><label>GeoLong: </label></td><td><input type="number" id="addGeoLong" /></td></tr>
+                <tr><td><label>GeoLat: </label></td><td><input type="number" id="addGeoLat" /></td></tr>*@
+            <tr><td><input type="hidden" id="editId" /></td><td></td></tr>
+            <tr><td><label>Адресс: </label></td><td><input type="text" id="editName" /></td></tr>
+            <tr><td><label>Id: </label></td><td><input type="number" id="editId" /></td></tr>
+            <tr><td><label>Кол-во мест: </label></td><td><input type="number" id="editTrafic" /></td></tr>
+            <tr><td><label>Плата за час: </label></td><td><input type="number" id="editCash" /></td></tr>
+            <tr><td><label>Макс. высота: </label></td><td><input type="number" id="editId" /></td></tr>
+            <tr><td><label>Охрана: </label></td><td><input type="number" id="editTrafic" /></td></tr>
+            <tr><td><label>Тип: </label></td><td><input type="number" id="editCash" /></td></tr>
+            <tr><td><label>Оплата: </label></td><td><input type="number" id="editTrafic" /></td></tr>
+            <tr><td><label>GeoLong: </label></td><td><input type="number" id="addGeoLong" /></td></tr>
+            <tr><td><label>GeoLat: </label></td><td><input type="number" id="addGeoLat" /></td></tr>
+        </table>
+        <button id="addBook">Сохранить</button>
+        <button id="addBook">Отменить</button>
+    </div>
+</div>
+<hr />
+<form action="" method="post">
+
+    <input type="text" name="" size="20" id="ff"/>
+    <button>OK</button> 
+</form>
+<button id="Click2P">Отметить парковку</button>
+@*<h2>Polygon</h2>
+<div id="tableBlock1" style="height:150px; width:400px;"></div>*@
+
+
+
+
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCxYWRqhyr5YSKZmVdxycL5ZLxCy6SNwMw&callback=GetMap"
+        async defer></script>
+
+@section scripts {
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            
+            GetMap();
+            GetAllBooks();
+            GetAllBooks1();
+            StartPolygon();
+
+            $("#Click2P").click(function (event) { event.preventDefault(); PointPolygon(); });
+
+            $("#editBook").click(function (event) {
+                event.preventDefault();
+                EditBook();
+            });
+
+            $("#addBook").click(function (event) {
+                event.preventDefault();
+                AddBook();
+            });
+        });
+
+
+        function GetAllBooks() {
+
+            $("#createBlock").css('display', 'block');
+            $("#editBlock").css('display', 'none');
+            $.ajax({
+                url: '/api/points',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    WriteResponse(data);
+                },
+                error: function (x, y, z) {
+                    alert(x + '\n' + y + '\n' + z);
+                }
+            });
+        }
+
+        
+
+        function AddBook() {
+
+            var book = {
+                Name: $('#addName').val(),
+                Id: $('#addId').val(),
+                Trafic: $('#addTrafic').val(),
+                Cash: $('#addCash').val(),
+                GeoLong: $('#addGeoLong').val(),
+                GeoLat: $('#addGeoLat').val(),
+            };
+            alert(JSON.stringify(book));
+            $.ajax({
+                url: '/api/points/',
+                type: 'POST',
+                data: JSON.stringify(book),
+                contentType: "application/json;charset=utf-8",
+                success: function (data) {
+                    GetAllBooks();
+                },
+                error: function (x, y, z) {
+                    alert(x + '\n' + y + '\n' + z);
+                }
+            });
+        }
+
+        function DeleteBook(id) {
+
+            $.ajax({
+                url: '/api/points/' + id,
+                type: 'DELETE',
+                contentType: "application/json;charset=utf-8",
+                success: function (data) {
+                    GetAllBooks();
+                },
+                error: function (x, y, z) {
+                    alert(x + '\n' + y + '\n' + z);
+                }
+            });
+        }
+        // редактирование книги
+        function EditBook() {
+            var id = $('#editId').val()
+            // получаем новые значения для редактируемой книги
+
+            var book = {
+                Name: $('#editName').val(),
+                Id: $('#editId').val(),
+                Trafic: $('#editTrafic').val(),
+                Cash: $('#editCash').val(),
+                //GeoLong: $('#editGeoLong').val(),
+                //GeoLat: $('#editGeoLat').val(),
+            };
+
+
+
+            $.ajax({
+                url: '/api/points/' + id,
+                type: 'PUT',
+                data: JSON.stringify(book),
+                contentType: "application/json;charset=utf-8",
+                success: function (data) {
+                    GetAllBooks();
+                },
+                error: function (x, y, z) {
+                    alert(x + '\n' + y + '\n' + z);
+                }
+            });
+        }
+
+        function WriteResponse(books) {
+            var strResult = "<table><th>ID</th><th>Название</th>";
+            $.each(books, function (index, book) {
+                strResult += "<tr><td>" + book.Id + "</td><td> " + book.Name + "</td><td>" +
+                
+                //book.GeoLong + "</td><td>" + book.GeoLat +
+                "</td><td>          <a id='editItem' data-item='" + book.Id + "' onclick='EditItem(this);' >Редактировать</a></td>" +
+                "<td><a id='delItem' data-item='" + book.Id + "' onclick='DeleteItem(this);' >Удалить</a></td></tr>";
+            });
+            strResult += "</table>";
+            $("#tableBlock").html(strResult);
+
+        }
+        // обработчик удаления
+        function DeleteItem(el) {
+            // получаем id удаляемого объекта
+            var id = $(el).attr('data-item');
+            DeleteBook(id);
+        }
+        // обработчик редактирования
+        function EditItem(el) {
+            // получаем id редактируемого объекта
+            var id = $(el).attr('data-item');
+            GetBook(id);
+        }
+        // вывод данных редактируемой книги в поля для редактирования
+        function ShowBook(book) {
+            if (book != null) {
+                $("#createBlock").css('display', 'none');
+                $("#editBlock").css('display', 'block');
+                $("#editId").val(book.Id);
+                $("#editName").val(book.Name);
+                $("#editTrafic").val(book.Trafic);
+                $("#editCash").val(book.Cash);
+                //$("#editGeoLong").val(book.GeoLong);
+                //$("#editGeoLat").val(book.GeoLat);
+            }
+            else {
+                alert("Такая книга не существует");
+            }
+        }
+        // запрос книги на редактирование
+        function GetBook(id) {
+            $.ajax({
+                url: '/api/points/' + id,
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    ShowBook(data);
+                },
+                error: function (x, y, z) {
+                    alert(x + '\n' + y + '\n' + z);
+                }
+            });
+        }
+
+
+
+
+
+
+        //Polyygonnn
+        function GetAllBooks1() {
+            $.ajax({
+                url: '/api/polygons',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    WriteResponse1(data);
+                },
+                error: function (x, y, z) {
+                    alert(x + '\n' + y + '\n' + z);
+                }
+            });
+        }
+
+
+        function DeleteBook1(id) {
+
+            $.ajax({
+                url: '/api/polygons/' + id,
+                type: 'DELETE',
+                contentType: "application/json;charset=utf-8",
+                success: function (data) {
+                    GetAllBooks1();
+                },
+                error: function (x, y, z) {
+                    alert(x + '\n' + y + '\n' + z);
+                }
+            });
+        }
+
+
+        function WriteResponse1(books) {
+            var strResult = "<table><th>Номер</th>";
+            $.each(books, function (index, book) {
+                strResult += "<tr><td> " + book.Number +
+
+
+                "<td><a id='delItem1' data-item1='" + book.Id + "' onclick='DeleteItem1(this);' >Удалить</a></td></tr>";
+            });
+            strResult += "</table>";
+            $("#tableBlock1").html(strResult);
+
+        }
+        // обработчик удаления
+        function DeleteItem1(el) {
+            // получаем id удаляемого объекта
+            var id = $(el).attr('data-item1');
+            DeleteBook1(id);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        var PolygonServer ;
+        var gol = {};
+        var bol = [];
+        var SpeedMarker = [];
+        var SpeedMarker2 = [];
+        var bol1 = [];
+        var lat1;
+        var lng1;
+
+        var latitude;
+        var longitude;
+        var map;
+        var SP;
+
+        function StartPolygon() {
+            $.getJSON('@Url.Action("GetPolygons","Home")', function (data) {
+                $.each(data, function (i, item) {
+                 
+                    if (SP==item.Number) 
+                    {
+                       
+                        bol.push(new google.maps.LatLng(item.lng, item.lat));
+                     
+                           
+                    }
+                    else
+
+                                {
+                       
+                                  if (bol.length >= 1)
+                                    {
+                                        var bermudTriangle = new google.maps.Polygon({
+                                            paths: bol,
+
+                                            strokeColor: '#FF0000',
+                                            strokeOpacity: 0.8,
+                                            strokeWeight: 3,
+                                            fillColor: '#FF0000',
+                                            editable: true,
+                                            draggable: true,
+                                            geodesic: true,
+                                            fillOpacity: 0.35
+
+                                        });
+
+                                        bermudTriangle.setMap(map);
+                                        bol = [];
+                                        bol.push(new google.maps.LatLng(item.lng, item.lat));
+                                        SP = item.Number;
+
+                                    }
+                                  else
+                                     {
+                                            bol.push(new google.maps.LatLng(item.lng, item.lat));
+                                            SP = item.Number;
+                                       }   
+                                  
+                                   
+                       
+                               }
+           
+                });
+                var bermudTriangle = new google.maps.Polygon({
+                    paths: bol,
+
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 3,
+                    fillColor: '#FF0000',
+                    editable: true,
+                    draggable: true,
+                    geodesic: true,
+                    fillOpacity: 0.35
+
+                });
+
+                bermudTriangle.setMap(map);
+                bol = [];
+              
+
+
+
+
+
+            });
+          
+        }
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        function GetMap() {
+
+
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 50.026875, lng: 36.328791 },
+                zoom: 18
+            });
+            var trafficLayer = new google.maps.TrafficLayer();
+            trafficLayer.setMap(map);
+
+
+            //для полигона 
+            var marker1 = [];
+            function placeMarkerAndPanTo(latLng, map) {
+                marker1.push(new google.maps.Marker({ position: latLng, map: map }))
+            };
+
+
+            function EventPolygon(e) {
+                placeMarkerAndPanTo(e.latLng, map);
+                SpeedMarker.push(e.latLng);
+            }
+            //конец для полигона 
+
+
+            //для точки 
+            var marker2 = [];
+            function placeMarkerAndPanTo2(latLng, map) {
+                marker2.push(new google.maps.Marker({ position: latLng, map: map }))
+            };
+
+
+            function EventPoint(e) {
+                placeMarkerAndPanTo2(e.latLng, map);
+                SpeedMarker2.push(e.latLng);
+                ff.innerHTML("FAST");
+                $("#createBlock").css('display', 'block');
+
+
+            }
+            //конец для точки 
+
+            Click2P.onclick= function () {
+                var p2 = $('#Click2P').text();
+                if (p2 == 'Установленно Point') {
+                    $('#Click2P').text("Установленно Polygon");
+
+                    google.maps.event.clearListeners(map, 'click');
+                    map.addListener('click', EventPolygon);
+                    map.addListener('rightclick', function () {
+
+                    
+
+                        for (var i = 0; i < marker1.length; i++) {
+                            marker1[i].setMap(null);
+                        }
+                        for (var i = 0; i < marker1.length; i++) {
+
+                            var lonng = SpeedMarker[i].lng().toString();
+                            var latte = SpeedMarker[i].lat().toString();
+
+                            PolygonServer = {
+                                lat: lonng,
+                                lng: latte,
+                                Number: '3' , Id: '4'
+                            }
+
+                            //alert(JSON.stringify(PolygonServer));
+
+                            $.ajax({
+                                url: '/api/polygons/',
+                                type: 'POST',
+                                data: JSON.stringify(PolygonServer),
+                                contentType: "application/json;charset=utf-8",
+                                success: function (data) {
+                                    GetAllBooks1();
+                                },
+                                error: function (x, y, z) {
+                                    alert(x + '\n' + y + '\n' + z);
+                                }
+                            });
+                            StartPolygon();
+
+
+                        }
+
+                    });
+
+
+                    }
+                
+                else {
+                    google.maps.event.clearListeners(map, 'rightclick');
+                    google.maps.event.clearListeners(map, 'click');
+                    $('#Click2P').text("Установленно Point");
+                    map.addListener('click', EventPoint);
+                   
+                }
+            };
+
+            //END
+
+            //map.addListener('click', function (e) {
+            //    placeMarkerAndPanTo(e.latLng, map);
+            //    SpeedMarker.push(e.latLng);
+
+            //});
+
+           
+
+
+            var triangleCoordss;
+
+            //End
+
+
+
+
+
+
+
+
+
+            
+
+
+
+
+
+            $.getJSON('@Url.Action("GetData","Home")', function (data) {
+
+                $.each(data, function (i, item) {
+                    var marker = new google.maps.Marker({
+                        'position': new google.maps.LatLng(item.GeoLong, item.GeoLat),
+                        'map': map,
+                        'title': item.Name
+                    });
+
+
+
+
+                    marker.setIcon('http://maps.google.com/mapfiles/ms/icons/blue-dot.png')
+
+
+
+
+
+                    var infowindow = new google.maps.InfoWindow({
+                        content: "<div class='stationInfo'><h2>Местоположение " + item.Name + "</h2><div><h4>Стоимость: "
+                            + item.Cash + "</h4></div><div><h4>Кол-во мест:0 " + "</h4></div><div><h4>Кол-во мест:0 "+ "</h4></div><div><h4>Макс. высота:0 "+ "</h4></div><div><h4>Охрана:0 "+ "</h4></div><div><h4>Тип:0 "
+                    });
+
+
+                    google.maps.event.addListener(marker, 'click', function () {
+                        infowindow.open(map, marker);
+                    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    );
+                })
+            });
+            
+        }
+        
+    </script>
+}
+
+
+
+
